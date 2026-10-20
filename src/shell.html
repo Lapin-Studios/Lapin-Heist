@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Lapin Heist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;700;800;900&display=swap">
+<style>
+/*@@CSS@@*/
+</style>
+</head>
+<body>
+<div id="game"></div>
+<div id="night" class="night"></div>
+
+<div id="hud" hidden>
+  <div class="hud-tl">
+    <div id="clockChip" class="chip clock">
+      <svg class="chip-ico moon-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 1 1 9.4 3.5a7 7 0 0 0 11.1 11.1z"/></svg>
+      <svg class="chip-ico sun-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.6"/><path d="M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3M4.8 4.8l2.1 2.1M17.1 17.1l2.1 2.1M4.8 19.2l2.1-2.1M17.1 6.9l2.1-2.1"/></svg>
+      <div class="chip-txt"><span id="timer" class="num">4:00</span><span id="timerLbl" class="lbl">until sunrise</span></div>
+    </div>
+    <div id="hearts" class="hearts"></div>
+  </div>
+  <div class="hud-tr">
+    <div class="chip stash">
+      <div class="chip-txt right"><span id="stash" class="num money">$0</span><span class="lbl">safe in the burrow</span></div>
+      <svg class="chip-ico bag-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.2 2.8h5.6l-1.6 3.6h-2.4z"/><path d="M8.6 7.6h6.8c3.4 2.1 5.6 6 5.6 9.2a4.4 4.4 0 0 1-4.4 4.4H7.4A4.4 4.4 0 0 1 3 16.8c0-3.2 2.2-7.1 5.6-9.2z"/></svg>
+    </div>
+    <div class="map-wrap"><canvas id="minimap" width="170" height="140"></canvas></div>
+  </div>
+  <div id="alert" class="alert" hidden><span class="alert-dot"></span>They're onto you!</div>
+  <div id="tut" class="tut" hidden>
+    <div class="tut-top"><span id="tutStep" class="eyebrow">Tutorial</span><button id="tutSkip" class="tut-skip">Skip tutorial</button></div>
+    <div id="tutText" class="tut-text"></div>
+  </div>
+  <div class="hud-bl">
+    <div class="form-card">
+      <div class="form-top"><span class="lbl">You are a</span><span id="status" class="status">Sneaking</span></div>
+      <div id="formName" class="form-name">Bunny</div>
+      <div class="meter"><i id="energyBar"></i></div>
+      <div id="energyText" class="meter-lbl">Shapeshift ready</div>
+      <div class="bag-row"><span class="lbl">Bag</span><div id="capBar" class="slots"></div></div>
+    </div>
+  </div>
+  <div id="prompts" class="prompts">
+    <div id="pGrab" class="prompt" hidden>
+      <span class="keywrap">
+        <svg id="holdRing" class="hold-ring" viewBox="0 0 40 40" style="display:none" aria-hidden="true"><circle cx="20" cy="20" r="17"></circle><circle id="holdArc" cx="20" cy="20" r="17"></circle></svg>
+        <span class="key" id="pGrabKey">E</span>
+      </span>
+      <span id="pGrabText"></span>
+    </div>
+    <div id="pShift" class="prompt shift" hidden><span class="keywrap"><span class="key">F</span></span><span id="pShiftText"></span></div>
+    <div id="pBack" class="prompt back" hidden><span class="keywrap"><span class="key">Q</span></span><span>Back to bunny</span></div>
+  </div>
+  <div id="toast" class="toast" hidden></div>
+  <div id="popups"></div>
+  <button id="pauseBtn" class="icon-btn" aria-label="Pause"><i></i><i></i></button>
+</div>
+
+<div id="touch" hidden>
+  <div id="joy"><div id="joyKnob"></div></div>
+  <div class="tbtns">
+    <button id="tRun" class="tbtn small">RUN</button>
+    <button id="tForm" class="tbtn small">BUNNY</button>
+    <div class="tcol">
+      <button id="tShift" class="tbtn mid">SHIFT</button>
+      <button id="tAct" class="tbtn">GRAB</button>
+    </div>
+  </div>
+</div>
+
+<div id="title" class="screen menu">
+  <div class="panel title-panel">
+    <div class="eyebrow">A nighttime burglary for one very small thief</div>
+    <h1 class="logo">Lapin<span>Heist</span></h1>
+    <p class="tag">The family is asleep... mostly. Sneak in, turn into whatever you touch, and haul the good stuff back to your burrow before sunrise.</p>
+    <div class="menu-buttons">
+      <button id="startBtn" class="big-btn">Start the Heist</button>
+      <div class="menu-row two">
+        <button id="tutorialBtn" class="mid-btn">Tutorial</button>
+        <button id="shopBtn" class="mid-btn">Shop</button>
+      </div>
+    </div>
+    <div class="wallet-line"><span class="wallet-pill"><span class="lbl">Wallet</span><b id="walletTitle">$0</b></span><span id="best" class="best"></span></div>
+    <details class="howto-box">
+      <summary>How to play</summary>
+      <div class="howto">
+        <div><span class="key">WASD</span> move</div>
+        <div><span class="key">Shift</span> sprint (noisy)</div>
+        <div><span class="key">E</span> grab loot</div>
+        <div><span class="key">F</span> shapeshift</div>
+        <div><span class="key">Q</span> back to bunny</div>
+        <div><span class="key">Wheel</span> zoom</div>
+        <div><span class="key">M</span> mute</div>
+        <div><span class="key">P</span> pause</div>
+      </div>
+      <ul class="rules">
+        <li><b>Press F next to anything to become it:</b> a couch, a toilet, a rug, a golden carrot, even a tree. Small things are fast, big things are slow.</li>
+        <li><b>Stand still and you're invisible.</b> If anyone sees a couch move, they come straight for you.</li>
+        <li><b>Disguises last 10 seconds,</b> then wear off with a poof and recharge while you're a bunny.</li>
+        <li><b>Your bag starts with room for 5 things.</b> Drop loot in the burrow outside the back door, then hold <span class="key">E</span> there to escape.</li>
+        <li><b>Spend your haul in the shop</b> on a bigger backpack, faster paws, longer disguises and the Human Disguise perk.</li>
+        <li><b>Some of the family is asleep.</b> Sprinting nearby wakes them, and sleepers get up on their own as the night goes on.</li>
+      </ul>
+    </details>
+    <div id="err" class="err" hidden></div>
+  </div>
+</div>
+
+<div id="pause" class="screen" hidden>
+  <div class="panel small-panel">
+    <div class="eyebrow">Paused</div>
+    <h2>Taking a breather</h2>
+    <button id="resumeBtn" class="big-btn">Keep Sneaking</button>
+    <button id="quitBtn" class="ghost-btn">Give up and go home</button>
+  </div>
+</div>
+
+<div id="end" class="screen" hidden>
+  <div class="panel end-panel">
+    <div class="receipt">
+      <div class="receipt-head">
+        <div id="endEyebrow" class="eyebrow">Heist report</div>
+        <h2 id="endTitle">Clean Getaway!</h2>
+        <p id="endSub" class="receipt-sub"></p>
+      </div>
+      <div id="endList" class="end-list"></div>
+      <div class="end-total"><span>Final haul</span><span id="endTotal" class="num">$0</span></div>
+      <div id="endRank" class="stamp"></div>
+    </div>
+    <div id="endStats" class="stats"></div>
+    <div id="endWallet" class="end-wallet"></div>
+    <div class="menu-row">
+      <button id="againBtn" class="big-btn">Rob a New House</button>
+      <button id="endShopBtn" class="mid-btn">Shop</button>
+      <button id="menuBtn" class="mid-btn">Main Menu</button>
+    </div>
+  </div>
+</div>
+
+<div id="shop" class="screen" hidden>
+  <div class="panel shop-panel">
+    <div class="shop-head">
+      <div><div class="eyebrow">The burrow shop</div><h2>Upgrades</h2></div>
+      <div class="wallet-pill big"><span class="lbl">Wallet</span><b id="walletShop">$0</b></div>
+    </div>
+    <div id="shopList" class="shop-list"></div>
+    <div class="menu-row">
+      <button id="shopBack" class="big-btn">Back</button>
+      <button id="resetSave" class="ghost-btn">Reset saved progress</button>
+    </div>
+    <p class="fine">Progress is saved in this browser on this device.</p>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>window.THREE||document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>')</script>
+<script>
+/*@@JS@@*/
+</script>
+</body>
+</html>
